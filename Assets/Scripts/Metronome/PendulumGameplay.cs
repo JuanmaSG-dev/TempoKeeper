@@ -7,11 +7,12 @@ public class PendulumGameplay : MonoBehaviour
     public float tolerance = 10f;
     private int crazyness = 0;
     private int maxCrazyness = 100;
-    private bool missedCycle = false;
-    private float time;
+    private int minCrazyness = 0;
+    private bool actionTaken = false; 
+    private int lastDirection = 0;
     public AudioClip metronome;
     public Slider slider;
-    
+
     void Start() {
         slider.maxValue = maxCrazyness;
         slider.value = crazyness;
@@ -19,38 +20,38 @@ public class PendulumGameplay : MonoBehaviour
 
     void Update()
     {
-        time += Time.deltaTime;
-
         float angle = pendulum.eulerAngles.z;
-
         if (angle > 180f) angle -= 360f;
 
         bool isInCorrectArea = Mathf.Abs(angle) <= tolerance;
+        int currentDirection = angle > 0 ? 1 : -1;
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Z))
+        if (currentDirection != lastDirection)
         {
-            
-            if (isInCorrectArea)
+            lastDirection = currentDirection;
+            actionTaken = false;
+        }
+
+        if (isInCorrectArea && !actionTaken)
+        {
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Z))
             {
                 crazyness--;
+                if (crazyness < minCrazyness) crazyness = minCrazyness;
                 PlayAudio();
                 Debug.Log("Correct! Score: " + crazyness);
-                missedCycle = false;
-            }
-            else
-            {
-                crazyness++;
-                Debug.Log("Incorrect! Score: " + crazyness);
-                missedCycle = false;
+                actionTaken = true;
             }
         }
 
-        if (isInCorrectArea && !Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.Z) && !missedCycle)
+        if (!isInCorrectArea && !actionTaken)
         {
             crazyness++;
+            if (crazyness > maxCrazyness) crazyness = maxCrazyness; // Game Over
             Debug.Log("Missed! Score: " + crazyness);
-            missedCycle = true;
+            actionTaken = true; 
         }
+
         slider.value = crazyness;
     }
 
@@ -58,6 +59,4 @@ public class PendulumGameplay : MonoBehaviour
         AudioSource audioSource = Camera.main.GetComponent<AudioSource>();
         audioSource.PlayOneShot(metronome);
     }
-
-
 }
