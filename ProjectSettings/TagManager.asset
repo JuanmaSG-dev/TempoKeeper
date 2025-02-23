@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Rock
   - MorseSymbol
+  - Piece
   layers:
   - Default
   - TransparentFX
